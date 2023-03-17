@@ -74,6 +74,40 @@ public class Day08 extends Day {
 
   @Override
   public int part2() {
-    throw new UnsupportedOperationException();
+    int result = 0;
+    for (int i = 0; i < rowSize; i++) {
+      for (int j = 0; j < columSize; j++) {
+        int left = 0;
+        for (int a = j - 1; a >= 0; a--) {
+          left++;
+          if (trees[i][a] >= trees[i][j]) {
+            break;
+          }
+        }
+        int right = 0;
+        for (int b = j + 1; b < columSize; b++) {
+          right++;
+          if (trees[i][b] >= trees[i][j]) {
+            break;
+          }
+        }
+        int top = 0;
+        for (int c = i - 1; c >= 0; c--) {
+          top++;
+          if (trees[c][j] >= trees[i][j]) {
+            break;
+          }
+        }
+        int bot = 0;
+        for (int d = i + 1; d < rowSize; d++) {
+          bot++;
+          if (trees[d][j] >= trees[i][j]) {
+            break;
+          }
+        }
+        result = Math.max(result, left * right * top * bot);
+      }
+    }
+    return result;
   }
 }

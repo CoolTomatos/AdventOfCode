@@ -23,5 +23,6 @@ public abstract class Day {
   public static void main(String[] args) throws IOException {
     var day = new Day08();
     System.out.println(day.part1());
+    System.out.println(day.part2());
   }
 }

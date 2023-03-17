@@ -18,4 +18,9 @@ class Day08Test {
   void part1() {
     assertThat(day.part1()).isEqualTo(21);
   }
+
+  @Test
+  void part2() {
+    assertThat(day.part2()).isEqualTo(8);
+  }
 }
