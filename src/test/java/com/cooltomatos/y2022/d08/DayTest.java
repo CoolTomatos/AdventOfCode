@@ -1,17 +1,18 @@
-package com.cooltomatos.y2022;
+package com.cooltomatos.y2022.d08;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.cooltomatos.y2022.AbstractDay;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class Day08Test {
-  private Day day;
+class DayTest {
+  private AbstractDay day;
 
   @BeforeEach
   void setUp() throws IOException {
-    day = new Day08();
+    day = new Day();
   }
 
   @Test

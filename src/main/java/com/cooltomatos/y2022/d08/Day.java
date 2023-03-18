@@ -1,15 +1,16 @@
-package com.cooltomatos.y2022;
+package com.cooltomatos.y2022.d08;
 
+import com.cooltomatos.y2022.AbstractDay;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class Day08 extends Day {
+public class Day extends AbstractDay {
   private final int[][] trees;
   private final int rowSize;
   private final int columSize;
 
-  public Day08() throws IOException {
+  public Day() throws IOException {
     super(8);
     rowSize = input.size();
     columSize = input.get(0).length();
