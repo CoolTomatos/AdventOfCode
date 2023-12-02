@@ -9,9 +9,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public final class Year2023Day01 extends AbstractDay {
+public final class Day extends AbstractDay {
 
-  public Year2023Day01(String dir, String file) {
+  public Day(String dir, String file) {
     super(2023, 1, dir, file);
   }
 
@@ -56,12 +56,12 @@ public final class Year2023Day01 extends AbstractDay {
   }
 
   @Override
-  public Integer part1() {
+  public int part1() {
     return calibrate(digitToInteger);
   }
 
   @Override
-  public Integer part2() {
+  public int part2() {
     return calibrate(realDigitToInteger);
   }
 }

@@ -19,7 +19,7 @@ public abstract class AbstractDay {
     }
   }
 
-  public abstract Object part1();
+  public abstract int part1();
 
-  public abstract Object part2();
+  public abstract int part2();
 }

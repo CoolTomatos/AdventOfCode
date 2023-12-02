@@ -7,10 +7,10 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class Year2022Day13 extends AbstractDay {
+public class Day extends AbstractDay {
   private final List<Pair> pairs;
 
-  public Year2022Day13(String dir, String file) {
+  public Day(String dir, String file) {
     super(2022, 13, dir, file);
     var builder = ImmutableList.<Pair>builder();
     for (int i = 0; i < input.size(); ) {
@@ -22,12 +22,12 @@ public class Year2022Day13 extends AbstractDay {
   }
 
   @Override
-  public Integer part1() {
+  public int part1() {
     return pairs.stream().filter(Pair::inOrder).mapToInt(Pair::index).sum();
   }
 
   @Override
-  public Integer part2() {
+  public int part2() {
     var firstDivider = List.of(List.of(2));
     var secondDivider = List.of(List.of(6));
     var sortedPackets =

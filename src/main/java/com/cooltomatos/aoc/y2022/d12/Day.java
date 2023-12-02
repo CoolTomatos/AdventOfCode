@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Year2022Day12 extends AbstractDay {
+public class Day extends AbstractDay {
   private final Grid grid;
   private Cell source;
   private Cell target;
 
-  public Year2022Day12(String dir, String file) {
+  public Day(String dir, String file) {
     super(2022, 12, dir, file);
     grid = new Grid(input.size(), input.getFirst().length());
     for (int i = 0; i < input.size(); i++) {
@@ -51,13 +51,13 @@ public class Year2022Day12 extends AbstractDay {
   }
 
   @Override
-  public Integer part1() {
+  public int part1() {
     traverse();
     return source.steps;
   }
 
   @Override
-  public Object part2() {
+  public int part2() {
     traverse();
     return Arrays.stream(grid.cells)
         .flatMap(Arrays::stream)
