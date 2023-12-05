@@ -41,7 +41,7 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     return Multimaps.filterValues(
             numbers, coordinate -> symbols.values().stream().anyMatch(coordinate::adjacent))
         .keySet()
@@ -51,7 +51,7 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     return symbols.get('*').stream()
         .map(
             coordinate ->

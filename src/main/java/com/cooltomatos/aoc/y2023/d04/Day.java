@@ -15,12 +15,12 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     return cards.stream().mapToInt(Card::points).sum();
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     var counts = HashMultiset.<Integer>create();
     cards.forEach(
         card -> {

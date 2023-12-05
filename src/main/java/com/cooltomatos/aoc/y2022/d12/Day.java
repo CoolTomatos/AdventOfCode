@@ -51,13 +51,13 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     traverse();
     return source.steps;
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     traverse();
     return Arrays.stream(grid.cells)
         .flatMap(Arrays::stream)

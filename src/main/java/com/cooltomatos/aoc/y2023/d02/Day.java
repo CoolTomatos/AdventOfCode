@@ -17,13 +17,13 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     Map<Color, Integer> cubes = ImmutableMap.of(Color.RED, 12, Color.GREEN, 13, Color.BLUE, 14);
     return games.stream().filter(game -> game.possible(cubes)).mapToInt(Game::id).sum();
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     return games.stream().mapToInt(Game::power).sum();
   }
 }

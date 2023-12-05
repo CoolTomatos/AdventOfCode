@@ -19,7 +19,7 @@ public abstract class AbstractDay {
     }
   }
 
-  public abstract int part1();
+  public abstract Number part1();
 
-  public abstract int part2();
+  public abstract Number part2();
 }

@@ -22,12 +22,12 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     return pairs.stream().filter(Pair::inOrder).mapToInt(Pair::index).sum();
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     var firstDivider = List.of(List.of(2));
     var secondDivider = List.of(List.of(6));
     var sortedPackets =

@@ -56,12 +56,12 @@ public final class Day extends AbstractDay {
   }
 
   @Override
-  public int part1() {
+  public Integer part1() {
     return calibrate(digitToInteger);
   }
 
   @Override
-  public int part2() {
+  public Integer part2() {
     return calibrate(realDigitToInteger);
   }
 }
