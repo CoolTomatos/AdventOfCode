@@ -1,9 +1,11 @@
 package com.cooltomatos.aoc.y2023.d05;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.BoundType.CLOSED;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableRangeMap.toImmutableRangeMap;
 
 import com.cooltomatos.aoc.AbstractDay;
-import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableRangeMap;
 import com.google.common.collect.Range;
@@ -11,7 +13,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 public class Day extends AbstractDay {
@@ -42,72 +44,64 @@ public class Day extends AbstractDay {
 
   @Override
   public Long part1() {
-    return seeds.stream()
-        .mapToLong(
-            seed ->
-                maps.stream()
-                    .reduce(
-                        seed,
-                        (mid, map) -> mid + Objects.requireNonNullElse(map.get(mid), 0L),
-                        (mid, result) -> result))
-        .reduce(Long.MAX_VALUE, Long::min);
+    var seedMap =
+        seeds.stream().collect(toImmutableRangeMap(seed -> Range.closed(seed, seed), unused -> 0L));
+    return solve(seedMap);
   }
 
   @Override
   public Long part2() {
-    var seedMap = TreeRangeMap.<Long, Long>create();
+    var seedMap = ImmutableRangeMap.<Long, Long>builder();
     for (int i = 0; i < seeds.size(); ) {
       var start = seeds.get(i++);
       var count = seeds.get(i++);
-      seedMap.put(Range.closedOpen(start, start + count), 0L);
+      seedMap.put(Range.closed(start, start + count - 1), 0L);
     }
+    return solve(seedMap.build());
+  }
+
+  private long solve(RangeMap<Long, Long> seedMap) {
     return maps.stream().reduce(seedMap, reducer).asMapOfRanges().entrySet().stream()
-        .filter(
-            entry ->
-                entry.getKey().lowerBoundType() != BoundType.OPEN
-                    || entry.getKey().upperBoundType() != BoundType.OPEN
-                    || entry.getKey().lowerEndpoint() + 1 < entry.getKey().upperEndpoint())
-        .mapToLong(
-            entry -> {
-              var range = entry.getKey();
-              var diff = entry.getValue();
-              long left;
-              if (range.lowerBoundType() == BoundType.CLOSED
-                  || range.lowerEndpoint().equals(range.upperEndpoint())) {
-                left = range.lowerEndpoint();
-              } else {
-                left = range.lowerEndpoint() + 1;
-              }
-              return left + diff;
-            })
+        .mapToLong(entry -> entry.getKey().lowerEndpoint() + entry.getValue())
         .reduce(Long.MAX_VALUE, Long::min);
   }
 
-  BinaryOperator<RangeMap<Long, Long>> reducer =
-      (left, right) -> {
-        var rightCopy = TreeRangeMap.<Long, Long>create();
-        rightCopy.putAll(right);
+  private static Range<Long> shift(Range<Long> range, long diff) {
+    checkArgument(range.lowerBoundType() == CLOSED && range.upperBoundType() == CLOSED);
+    return Range.closed(range.lowerEndpoint() + diff, range.upperEndpoint() + diff);
+  }
+
+  private static Optional<Range<Long>> tighten(Range<Long> range) {
+    var lowerType = range.lowerBoundType();
+    long lower = range.lowerEndpoint();
+    var upperType = range.upperBoundType();
+    long upper = range.upperEndpoint();
+    if (lowerType == CLOSED || upperType == CLOSED || lower + 1 < upper) {
+      return Optional.of(
+          Range.closed(
+              lowerType == CLOSED ? lower : lower + 1, upperType == CLOSED ? upper : upper - 1));
+    }
+    return Optional.empty();
+  }
+
+  private static final BinaryOperator<RangeMap<Long, Long>> reducer =
+      (base, incoming) -> {
+        var copy = TreeRangeMap.<Long, Long>create();
+        copy.putAll(incoming);
         var map = ImmutableRangeMap.<Long, Long>builder();
-        left.asMapOfRanges()
+        base.asMapOfRanges()
             .forEach(
-                (range, leftDiff) -> {
-                  var shifted = shiftRange(range, leftDiff);
-                  rightCopy.merge(shifted, leftDiff, Long::sum);
-                  rightCopy
-                      .subRangeMap(shifted)
+                (oldRange, oldDiff) -> {
+                  var shifted = shift(oldRange, oldDiff);
+                  copy.merge(shifted, oldDiff, Long::sum);
+                  copy.subRangeMap(shifted)
                       .asMapOfRanges()
                       .forEach(
-                          (rightRange, newDiff) ->
-                              map.put(shiftRange(rightRange, -leftDiff), newDiff));
+                          (range, newDiff) ->
+                              tighten(range)
+                                  .map(tightened -> shift(tightened, -oldDiff))
+                                  .ifPresent(newRange -> map.put(newRange, newDiff)));
                 });
         return map.build();
       };
-
-  private static Range<Long> shiftRange(Range<Long> range, long diff) {
-    return Range.range(
-        range.lowerEndpoint() + diff,
-        range.lowerBoundType(),
-        range.upperEndpoint() + diff,
-        range.upperBoundType());
-  }
 }
