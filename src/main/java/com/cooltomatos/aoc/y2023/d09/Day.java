@@ -1,8 +1,7 @@
 package com.cooltomatos.aoc.y2023.d09;
 
 import com.cooltomatos.aoc.AbstractDay;
-import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
+import com.google.common.collect.Streams;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,36 +18,24 @@ public class Day extends AbstractDay {
 
   @Override
   public Integer part1() {
-    return histories.stream().mapToInt(Day::extrapolate).sum();
-  }
-
-  private static int extrapolate(List<Integer> history) {
-    if (history.stream().allMatch(history.getFirst()::equals)) {
-      return history.getFirst();
-    } else {
-      var underline = new ArrayList<Integer>();
-      for (int i = 1; i < history.size(); i++) {
-        underline.add(history.get(i) - history.get(i - 1));
-      }
-      return history.getLast() + extrapolate(ImmutableList.copyOf(underline));
-    }
+    return histories.stream().mapToInt(history -> extrapolate(history, true)).sum();
   }
 
   @Override
   public Integer part2() {
-    return histories.stream().mapToInt(Day::previous).sum();
+    return histories.stream().mapToInt(history -> extrapolate(history, false)).sum();
   }
 
-  private static int previous(List<Integer> history) {
-    if (history.stream().allMatch(history.getFirst()::equals)) {
-      return history.getFirst();
-    } else {
-      var underline = new ArrayList<Integer>();
-      for (int i = 1; i < history.size(); i++) {
-        underline.add(history.get(i) - history.get(i - 1));
-      }
-      var previous = previous(ImmutableList.copyOf(underline));
-      return history.getFirst() - previous;
+  private static int extrapolate(List<Integer> history, boolean next) {
+    var base = next ? history.getLast() : history.getFirst();
+    if (history.stream().allMatch(base::equals)) {
+      return base;
     }
+    var underline =
+        Streams.mapWithIndex(
+                history.stream().skip(1), (value, index) -> value - history.get(((int) index)))
+            .toList();
+    var extrapolated = extrapolate(underline, next);
+    return base + (next ? extrapolated : -extrapolated);
   }
 }
