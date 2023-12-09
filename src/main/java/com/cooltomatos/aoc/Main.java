@@ -1,6 +1,6 @@
 package com.cooltomatos.aoc;
 
-import com.cooltomatos.aoc.y2023.d09.Day;
+import com.cooltomatos.aoc.y2023.d08.Day;
 import java.time.Clock;
 import java.time.Duration;
 
