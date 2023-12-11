@@ -1,18 +1,21 @@
 package com.cooltomatos.aoc.y2023.d10;
 
+import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.cooltomatos.aoc.AbstractDay;
 import com.cooltomatos.aoc.common.Coordinate;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Day extends AbstractDay {
   private final Table<Integer, Integer, Character> grid = HashBasedTable.create();
-  private final Coordinate start;
   private final Table<Integer, Integer, Integer> mainLoop = HashBasedTable.create();
 
   public Day(String dir, String file) {
@@ -38,12 +41,10 @@ public class Day extends AbstractDay {
             });
       }
     }
-    this.start = start;
+    System.out.println("Finished importing the grid:");
+    printTable(grid);
     mainLoop.put(start.x(), start.y(), 0);
-  }
 
-  @Override
-  public Integer part1() {
     while (true) {
       var looseEnds =
           grid.cellSet().stream()
@@ -54,34 +55,49 @@ public class Day extends AbstractDay {
       }
       looseEnds.forEach(cell -> grid.remove(cell.getRowKey(), cell.getColumnKey()));
     }
+    System.out.println("Finished removing loose ends:");
     printTable(grid);
+
+    char startTile;
+    if (connectedTop(start.x(), start.y()) && connectedBottom(start.x(), start.y())) {
+      startTile = '│';
+    } else if (connectedTop(start.x(), start.y()) && connectedLeft(start.x(), start.y())) {
+      startTile = '┘';
+    } else if (connectedTop(start.x(), start.y())) {
+      startTile = '└';
+    } else if (connectedBottom(start.x(), start.y()) && connectedLeft(start.x(), start.y())) {
+      startTile = '┐';
+    } else if (connectedBottom(start.x(), start.y())) {
+      startTile = '┌';
+    } else {
+      startTile = '─';
+    }
+    grid.put(start.x(), start.y(), startTile);
+
     var toVisit = new LinkedList<Coordinate>();
     toVisit.add(start);
     while (!toVisit.isEmpty()) {
       var current = toVisit.removeFirst();
-      if (connectedTop(current.x(), current.y())) {
-        if (!mainLoop.contains(current.x() - 1, current.y())) {
-          toVisit.add(new Coordinate(current.x() - 1, current.y()));
-          mainLoop.put(current.x() - 1, current.y(), 1 + mainLoop.get(current.x(), current.y()));
-        }
+      var nextDistance = 1 + Objects.requireNonNull(mainLoop.get(current.x(), current.y()));
+      if (connectedTop(current.x(), current.y())
+          && !mainLoop.contains(current.x() - 1, current.y())) {
+        toVisit.add(new Coordinate(current.x() - 1, current.y()));
+        mainLoop.put(current.x() - 1, current.y(), nextDistance);
       }
-      if (connectedBottom(current.x(), current.y())) {
-        if (!mainLoop.contains(current.x() + 1, current.y())) {
-          toVisit.add(new Coordinate(current.x() + 1, current.y()));
-          mainLoop.put(current.x() + 1, current.y(), 1 + mainLoop.get(current.x(), current.y()));
-        }
+      if (connectedBottom(current.x(), current.y())
+          && !mainLoop.contains(current.x() + 1, current.y())) {
+        toVisit.add(new Coordinate(current.x() + 1, current.y()));
+        mainLoop.put(current.x() + 1, current.y(), nextDistance);
       }
-      if (connectedLeft(current.x(), current.y())) {
-        if (!mainLoop.contains(current.x(), current.y() - 1)) {
-          toVisit.add(new Coordinate(current.x(), current.y() - 1));
-          mainLoop.put(current.x(), current.y() - 1, 1 + mainLoop.get(current.x(), current.y()));
-        }
+      if (connectedLeft(current.x(), current.y())
+          && !mainLoop.contains(current.x(), current.y() - 1)) {
+        toVisit.add(new Coordinate(current.x(), current.y() - 1));
+        mainLoop.put(current.x(), current.y() - 1, nextDistance);
       }
-      if (connectedRight(current.x(), current.y())) {
-        if (!mainLoop.contains(current.x(), current.y() + 1)) {
-          toVisit.add(new Coordinate(current.x(), current.y() + 1));
-          mainLoop.put(current.x(), current.y() + 1, 1 + mainLoop.get(current.x(), current.y()));
-        }
+      if (connectedRight(current.x(), current.y())
+          && !mainLoop.contains(current.x(), current.y() + 1)) {
+        toVisit.add(new Coordinate(current.x(), current.y() + 1));
+        mainLoop.put(current.x(), current.y() + 1, nextDistance);
       }
     }
     var redundant =
@@ -89,13 +105,53 @@ public class Day extends AbstractDay {
             .filter(cell -> !mainLoop.contains(cell.getRowKey(), cell.getColumnKey()))
             .collect(toImmutableSet());
     redundant.forEach(cell -> grid.remove(cell.getRowKey(), cell.getColumnKey()));
+    System.out.println("Finished removing irrelevant circles");
     printTable(grid);
+  }
+
+  @Override
+  public Integer part1() {
     return mainLoop.values().stream().max(Integer::compareTo).orElseThrow();
   }
 
   @Override
-  public Number part2() {
-    return null;
+  public Long part2() {
+    for (int rowKey : grid.rowKeySet()) {
+      var row =
+          Maps.filterValues(grid.row(rowKey), not(Character.valueOf('─')::equals))
+              .entrySet()
+              .stream()
+              .sorted(Entry.comparingByKey())
+              .collect(Collectors.toList());
+      boolean inside = false;
+      int previousFlip = -1;
+      while (!row.isEmpty()) {
+        var first = row.removeFirst();
+        if (first.getValue().equals('│')) {
+          for (int columnKey = previousFlip + 1; columnKey < first.getKey(); columnKey++) {
+            if (!grid.contains(rowKey, columnKey)) {
+              grid.put(rowKey, columnKey, inside ? 'I' : 'O');
+            }
+          }
+          inside = !inside;
+          previousFlip = first.getKey();
+        } else {
+          var second = row.removeFirst();
+          if (first.getValue().equals('└') && second.getValue().equals('┐')
+              || first.getValue().equals('┌') && second.getValue().equals('┘')) {
+            for (int columnKey = previousFlip + 1; columnKey < first.getKey(); columnKey++) {
+              if (!grid.contains(rowKey, columnKey)) {
+                grid.put(rowKey, columnKey, inside ? 'I' : 'O');
+              }
+            }
+            inside = !inside;
+            previousFlip = second.getKey();
+          }
+        }
+      }
+    }
+    printTable(grid);
+    return grid.values().stream().filter(Character.valueOf('I')::equals).count();
   }
 
   private boolean connected(int row, int column) {
@@ -114,37 +170,25 @@ public class Day extends AbstractDay {
 
   private boolean connectedTop(int row, int column) {
     var top = Objects.requireNonNullElse(grid.get(row - 1, column), ' ');
-    if (Set.of('┼', '┐', '│', '┌').contains(top)) {
-      return true;
-    }
-    return false;
+    return Set.of('┼', '┐', '│', '┌').contains(top);
   }
 
   private boolean connectedBottom(int row, int column) {
     var bottom = Objects.requireNonNullElse(grid.get(row + 1, column), ' ');
-    if (Set.of('┼', '┘', '│', '└').contains(bottom)) {
-      return true;
-    }
-    return false;
+    return Set.of('┼', '┘', '│', '└').contains(bottom);
   }
 
   private boolean connectedLeft(int row, int column) {
     var left = Objects.requireNonNullElse(grid.get(row, column - 1), ' ');
-    if (Set.of('┼', '└', '─', '┌').contains(left)) {
-      return true;
-    }
-    return false;
+    return Set.of('┼', '└', '─', '┌').contains(left);
   }
 
   private boolean connectedRight(int row, int column) {
     var right = Objects.requireNonNullElse(grid.get(row, column + 1), ' ');
-    if (Set.of('┼', '┘', '─', '┐').contains(right)) {
-      return true;
-    }
-    return false;
+    return Set.of('┼', '┘', '─', '┐').contains(right);
   }
 
-  private void printTable(Table<Integer, Integer, ?> table) {
+  private void printTable(Table<Integer, Integer, Character> table) {
     int minRow = table.rowKeySet().stream().min(Integer::compare).orElseThrow();
     int maxRow = table.rowKeySet().stream().max(Integer::compare).orElseThrow();
     int minColumn = table.columnKeySet().stream().min(Integer::compare).orElseThrow();
@@ -155,9 +199,19 @@ public class Day extends AbstractDay {
     System.out.println();
     for (int r = minRow; r <= maxRow; r++) {
       for (int c = minColumn; c <= maxColumn; c++) {
-        System.out.print(Objects.requireNonNullElse(table.get(r, c), ' '));
+        char tile = Objects.requireNonNullElse(table.get(r, c), ' ');
+        if (tile == 'O') {
+          tile = ' ';
+        } else if (tile == 'I') {
+          tile = '█';
+        }
+        System.out.print(tile);
       }
       System.out.println();
     }
+    for (int c = minColumn; c <= maxColumn; c++) {
+      System.out.print("*");
+    }
+    System.out.println();
   }
 }
