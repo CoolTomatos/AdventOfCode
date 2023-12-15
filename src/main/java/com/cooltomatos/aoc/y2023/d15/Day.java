@@ -3,7 +3,6 @@ package com.cooltomatos.aoc.y2023.d15;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.cooltomatos.aoc.AbstractDay;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +25,7 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public Long part2() {
+  public Integer part2() {
     Map<Integer, LinkedHashMap<String, Integer>> boxes = new HashMap<>();
     steps.stream()
         .map(Pattern.compile("(\\w+)([-=])([1-9]?)")::matcher)
@@ -34,22 +33,19 @@ public class Day extends AbstractDay {
         .forEach(
             matcher -> {
               var label = matcher.group(1);
-              var box = boxes.computeIfAbsent(hash(label), unused -> new LinkedHashMap<>());
+              var box = boxes.computeIfAbsent(hash(label) + 1, unused -> new LinkedHashMap<>());
               switch (matcher.group(2).charAt(0)) {
                 case '-' -> box.remove(label);
                 case '=' -> box.put(label, Integer.parseInt(matcher.group(3)));
               }
             });
-    return Maps.transformEntries(
-            boxes,
-            (boxNumber, lenses) ->
+    return boxes.entrySet().stream()
+        .flatMap(
+            entry ->
                 Streams.mapWithIndex(
-                        lenses.values().stream(),
-                        (focus, index) -> (boxNumber + 1) * (index + 1) * focus)
-                    .reduce(0L, Long::sum))
-        .values()
-        .stream()
-        .reduce(0L, Long::sum);
+                    entry.getValue().values().stream(),
+                    (focus, index) -> entry.getKey() * ((int) index + 1) * focus))
+        .reduce(0, Integer::sum);
   }
 
   private static int hash(String word) {
