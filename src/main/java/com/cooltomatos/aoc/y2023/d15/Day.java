@@ -3,6 +3,7 @@ package com.cooltomatos.aoc.y2023.d15;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.cooltomatos.aoc.AbstractDay;
+import com.cooltomatos.aoc.function.EntryFunction;
 import com.google.common.collect.Streams;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Day extends AbstractDay {
   private final List<String> steps;
@@ -41,10 +43,11 @@ public class Day extends AbstractDay {
             });
     return boxes.entrySet().stream()
         .flatMap(
-            entry ->
-                Streams.mapWithIndex(
-                    entry.getValue().values().stream(),
-                    (focus, index) -> entry.getKey() * ((int) index + 1) * focus))
+            (EntryFunction<Integer, LinkedHashMap<String, Integer>, Stream<Integer>>)
+                (boxNumber, box) ->
+                    Streams.mapWithIndex(
+                        box.values().stream(),
+                        (focus, index) -> boxNumber * ((int) index + 1) * focus))
         .reduce(0, Integer::sum);
   }
 
