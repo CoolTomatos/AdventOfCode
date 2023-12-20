@@ -7,23 +7,24 @@ import static java.util.function.Function.identity;
 import com.cooltomatos.aoc.AbstractDay;
 import com.cooltomatos.aoc.y2023.d19.Workflow.Rule;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.BoundType;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeRangeSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Day extends AbstractDay {
   private final Map<String, Workflow> workflows;
-  private final ListMultimap<String, Part> parts = ArrayListMultimap.create();
+  private final SetMultimap<String, Part> parts = HashMultimap.create();
 
   public Day(String dir, String file) {
     super(2023, 19, dir, file);
@@ -53,9 +54,9 @@ public class Day extends AbstractDay {
                                     Integer.parseInt(ruleMatcher.group(3)),
                                     ruleMatcher.group(4));
                               })
-                          .toList();
-                  var fallback = rulesRaw[rulesRaw.length - 1];
-                  return new Workflow(name, rules, fallback);
+                          .collect(Collectors.toList());
+                  rules.add(new Rule(Rating.X, Operator.MORE, 0, rulesRaw[rulesRaw.length - 1]));
+                  return new Workflow(name, rules);
                 })
             .collect(toImmutableMap(Workflow::name, identity()));
     input.subList(cut + 1, input.size()).stream()
@@ -81,6 +82,7 @@ public class Day extends AbstractDay {
       var workflow = workflows.get(first.getKey());
       var part = first.getValue();
       parts.remove(workflow.name(), part);
+
       for (Rule rule : workflow.rules()) {
         if (switch (rule.operator()) {
           case LESS -> part.ratings().get(rule.rating()) < rule.value();
@@ -90,16 +92,14 @@ public class Day extends AbstractDay {
           break;
         }
       }
-      if (!parts.containsValue(part)) {
-        parts.put(workflow.fallback(), part);
-      }
     }
+
     return parts.get("A").stream().mapToInt(Part::sum).sum();
   }
 
   @Override
   public Long part2() {
-    ListMultimap<String, MetaPart> metaParts = ArrayListMultimap.create();
+    SetMultimap<String, MetaPart> metaParts = HashMultimap.create();
     metaParts.put(
         "in",
         new MetaPart(
@@ -126,7 +126,7 @@ public class Day extends AbstractDay {
           }
           case MORE -> {
             trueSet = TreeRangeSet.create(range.subRangeSet(Range.closed(rule.value() + 1, 4000)));
-            falseSet = TreeRangeSet.create(range.subRangeSet(Range.closed(1, rule.value())));
+            falseSet = TreeRangeSet.create(range.subRangeSet(Range.closed(0, rule.value())));
           }
           default -> throw new IllegalStateException("Unexpected value: " + rule.operator());
         }
@@ -143,9 +143,6 @@ public class Day extends AbstractDay {
         if (falseSet.isEmpty()) {
           break;
         }
-      }
-      if (metaPart.valid()) {
-        metaParts.put(workflow.fallback(), metaPart);
       }
     }
     return metaParts.get("A").stream()

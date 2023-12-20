@@ -1,6 +1,5 @@
 package com.cooltomatos.aoc.y2023.d19;
 
-import static java.util.function.Predicate.not;
 
 import com.google.common.collect.RangeSet;
 import java.util.Map;
@@ -12,10 +11,6 @@ public record MetaPart(int id, Map<Rating, RangeSet<Integer>> ratings) {
 
   MetaPart(Map<Rating, RangeSet<Integer>> ratings) {
     this(RANDOM.nextInt(), ratings);
-  }
-
-  boolean valid() {
-    return ratings.values().stream().allMatch(not(RangeSet::isEmpty));
   }
 
   @Override
