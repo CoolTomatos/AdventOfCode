@@ -1,16 +1,22 @@
 package com.cooltomatos.aoc.y2023.d19;
 
-
-import com.google.common.collect.RangeSet;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-public record MetaPart(int id, Map<Rating, RangeSet<Integer>> ratings) {
+record MetaPart(int id, ImmutableMap<Rating, Range<Integer>> ratings) {
   static final Random RANDOM = new Random();
 
-  MetaPart(Map<Rating, RangeSet<Integer>> ratings) {
-    this(RANDOM.nextInt(), ratings);
+  MetaPart(Map<Rating, Range<Integer>> ratings) {
+    this(RANDOM.nextInt(), ImmutableMap.copyOf(ratings));
+  }
+
+  long possibilities() {
+    return ratings.values().stream()
+        .mapToLong(range -> range.upperEndpoint() - range.lowerEndpoint() + 1)
+        .reduce(1L, (l, r) -> l * r);
   }
 
   @Override

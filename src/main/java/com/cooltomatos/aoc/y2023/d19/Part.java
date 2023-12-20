@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
-public record Part(int id, ImmutableMap<Rating, Integer> ratings) {
+record Part(int id, ImmutableMap<Rating, Integer> ratings) {
   private static final Random RANDOM = new Random();
 
   Part(Map<Rating, Integer> ratings) {
