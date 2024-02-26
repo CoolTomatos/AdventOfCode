@@ -20,6 +20,6 @@ class DayTest {
 
   @Test
   void part2() {
-    assertThat(day.part2()).isNull();
+    assertThat(day.part2()).isEqualTo(51);
   }
 }
