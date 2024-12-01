@@ -1,7 +1,7 @@
 package com.cooltomatos.aoc.y2024.d01;
 
-
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableMultiset.toImmutableMultiset;
 
 import com.cooltomatos.aoc.AbstractDay;
 import java.util.Arrays;
@@ -37,6 +37,10 @@ public class Day extends AbstractDay {
 
   @Override
   public Number part2() {
-    return null;
+    var left = Arrays.stream(this.left).boxed().collect(toImmutableMultiset());
+    var right = Arrays.stream(this.right).boxed().collect(toImmutableMultiset());
+    return left.elementSet().stream()
+        .mapToInt(element -> element * left.count(element) * right.count(element))
+        .sum();
   }
 }
