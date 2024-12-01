@@ -1,4 +1,4 @@
-package com.cooltomatos.aoc.y2024.d01;
+package com.cooltomatos.aoc.y2024.d02;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,11 +15,11 @@ public class DayTest {
 
   @Test
   void part1() {
-    assertThat(day.part1()).isEqualTo(11);
+    assertThat(day.part1()).isNull();
   }
 
   @Test
   void part2() {
-    assertThat(day.part2()).isEqualTo(31);
+    assertThat(day.part2()).isNull();
   }
 }
