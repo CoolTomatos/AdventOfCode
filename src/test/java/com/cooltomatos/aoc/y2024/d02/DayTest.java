@@ -15,11 +15,11 @@ public class DayTest {
 
   @Test
   void part1() {
-    assertThat(day.part1()).isNull();
+    assertThat(day.part1()).isEqualTo(2);
   }
 
   @Test
   void part2() {
-    assertThat(day.part2()).isNull();
+    assertThat(day.part2()).isEqualTo(4);
   }
 }
