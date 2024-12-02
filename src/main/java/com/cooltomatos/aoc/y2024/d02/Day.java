@@ -22,8 +22,8 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public Number part2() {
-    return null;
+  public Long part2() {
+    return reports.stream().filter(Report::lessSafe).count();
   }
 
   private record Report(int[] levels) {
@@ -37,6 +37,18 @@ public class Day extends AbstractDay {
         return false;
       }
       return true;
+    }
+
+    boolean lessSafe() {
+      for (var i = 0; i < levels.length; i++) {
+        var newLevels = new int[levels.length - 1];
+        System.arraycopy(levels, 0, newLevels, 0, i);
+        System.arraycopy(levels, i + 1, newLevels, i, newLevels.length - i);
+        if (new Report(newLevels).safe()) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }
