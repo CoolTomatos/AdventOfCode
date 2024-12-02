@@ -30,11 +30,10 @@ public class Day extends AbstractDay {
     boolean safe() {
       boolean increase = levels[0] < levels[1];
       for (var i = 0; i < levels.length - 1; i++) {
-        if (increase && levels[i] + 1 <= levels[i + 1] && levels[i] + 3 >= levels[i + 1]
-            || !increase && levels[i] - 1 >= levels[i + 1] && levels[i] - 3 <= levels[i + 1]) {
-          continue;
+        var gap = levels[i] - levels[i + 1];
+        if (increase && (gap < -3 || gap > -1) || !increase && (gap < 1 || gap > 3)) {
+          return false;
         }
-        return false;
       }
       return true;
     }
