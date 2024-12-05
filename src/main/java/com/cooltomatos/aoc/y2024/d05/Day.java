@@ -4,7 +4,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 
 import com.cooltomatos.aoc.AbstractDay;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -33,25 +35,64 @@ public class Day extends AbstractDay {
 
     @Override
     public Integer part1() {
-    int result = 0;
-    for (List<Integer> update : updates) {
-      HashSet<Integer> printed = new HashSet<>();
-      for (Integer page : update) {
-        if (printed.stream().anyMatch(printedPage -> rules.get(page).contains(printedPage))) {
-          break;
-        }
-        printed.add(page);
-      }
-      if (update.size() == printed.size()) {
-        int midPage = update.get((update.size() - 1) / 2);
-        result += midPage;
-      }
-    }
-    return result;
-    }
+    return updates.stream()
+        .filter(
+            update -> {
+              HashSet<Integer> printed = new HashSet<>();
+              for (Integer page : update) {
+                if (printed.stream()
+                    .anyMatch(printedPage -> rules.get(page).contains(printedPage))) {
+                  return false;
+                }
+                printed.add(page);
+              }
+              return true;
+            })
+        .map(update -> update.get((update.size() - 1) / 2))
+        .reduce(0, Integer::sum);
+  }
 
-    @Override
-    public Number part2() {
-        return null;
-    }
+  @Override
+  public Integer part2() {
+    return updates.stream()
+        .filter(
+            update -> {
+              HashSet<Integer> printed = new HashSet<>();
+              for (Integer page : update) {
+                if (printed.stream()
+                    .anyMatch(printedPage -> rules.get(page).contains(printedPage))) {
+                  return true;
+                }
+                printed.add(page);
+              }
+              return false;
+            })
+        .map(
+            update -> {
+              HashMultimap<Integer, Integer> invertedRules = HashMultimap.create();
+              HashSet<Integer> toPrint = new HashSet<>(update);
+              rules.inverse().entries().stream()
+                  .filter(
+                      entry ->
+                          toPrint.contains(entry.getKey()) && toPrint.contains(entry.getValue()))
+                  .forEach(entry -> invertedRules.put(entry.getKey(), entry.getValue()));
+              ArrayList<Integer> newUpdate = new ArrayList<>(update.size());
+              while (!toPrint.isEmpty()) {
+                int next =
+                    toPrint.stream()
+                        .filter(page -> invertedRules.get(page).isEmpty())
+                        .findFirst()
+                        .orElseThrow();
+                toPrint.remove(next);
+                newUpdate.add(next);
+                invertedRules.removeAll(next);
+                for (Integer key : new HashSet<>(invertedRules.keySet())) {
+                  invertedRules.remove(key, next);
+                }
+              }
+              return newUpdate;
+            })
+        .map(update -> update.get((update.size() - 1) / 2))
+        .reduce(0, Integer::sum);
+  }
 }
