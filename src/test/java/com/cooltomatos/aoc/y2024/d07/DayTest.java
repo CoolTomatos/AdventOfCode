@@ -15,7 +15,7 @@ public class DayTest {
 
   @Test
   void part1() {
-    assertThat(day.part1()).isNull();
+    assertThat(day.part1()).isEqualTo(3749);
   }
 
   @Test
