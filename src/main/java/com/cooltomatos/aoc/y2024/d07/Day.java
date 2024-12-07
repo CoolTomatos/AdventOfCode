@@ -28,47 +28,38 @@ public class Day extends AbstractDay {
                             .toArray()));
   }
 
-  private static boolean test(long test, int[] numbers) {
-    return test(test, numbers, numbers.length - 1);
-  }
-
-  private static boolean newTest(long test, int[] numbers) {
-    if (numbers.length == 1) {
-      return test == numbers[0];
-    }
-    int lastNumber = numbers[numbers.length - 1];
-    int[] newNumbers = Arrays.copyOf(numbers, numbers.length - 1);
-    if (test % lastNumber == 0 && newTest(test / lastNumber, newNumbers)) {
-      return true;
-    } else if (newTest(test - lastNumber, newNumbers)) {
-      return true;
-    }
-    int pow = (int) Math.pow(10, Math.floor(Math.log10(lastNumber)) + 1);
-    return test % pow == lastNumber && newTest(test / pow, newNumbers);
-  }
-
-  @Override
-  public Long part2() {
-    return equations.entries().stream()
-        .filter((EntryPredicate<Long, int[]>) Day::newTest)
-        .mapToLong(Map.Entry::getKey)
-        .sum();
-  }
-
-  private static boolean test(long test, int[] numbers, int lastIndex) {
+  private static boolean test(long test, int[] numbers, int lastIndex, boolean allowConcat) {
     if (lastIndex == 0) {
       return test == numbers[0];
     }
     int lastNumber = numbers[lastIndex--];
-    return test % lastNumber == 0
-        ? test(test / lastNumber, numbers, lastIndex) || test(test - lastNumber, numbers, lastIndex)
-        : test(test - lastNumber, numbers, lastIndex);
+    if (test % lastNumber == 0 && test(test / lastNumber, numbers, lastIndex, allowConcat)) {
+      return true;
+    } else if (test(test - lastNumber, numbers, lastIndex, allowConcat)) {
+      return true;
+    } else if (allowConcat) {
+      int pow = (int) Math.pow(10, Math.floor(Math.log10(lastNumber)) + 1);
+      return test % pow == lastNumber && test(test / pow, numbers, lastIndex, true);
+    }
+    return false;
   }
 
   @Override
   public Long part1() {
     return equations.entries().stream()
-        .filter((EntryPredicate<Long, int[]>) Day::test)
+        .filter(
+            (EntryPredicate<Long, int[]>)
+                (test, numbers) -> test(test, numbers, numbers.length - 1, false))
+        .mapToLong(Map.Entry::getKey)
+        .sum();
+  }
+
+  @Override
+  public Long part2() {
+    return equations.entries().stream()
+        .filter(
+            (EntryPredicate<Long, int[]>)
+                (test, numbers) -> test(test, numbers, numbers.length - 1, true))
         .mapToLong(Map.Entry::getKey)
         .sum();
   }
