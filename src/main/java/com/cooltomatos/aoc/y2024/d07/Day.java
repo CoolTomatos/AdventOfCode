@@ -32,9 +32,27 @@ public class Day extends AbstractDay {
     return test(test, numbers, numbers.length - 1);
   }
 
+  private static boolean newTest(long test, int[] numbers) {
+    if (numbers.length == 1) {
+      return test == numbers[0];
+    }
+    int lastNumber = numbers[numbers.length - 1];
+    int[] newNumbers = Arrays.copyOf(numbers, numbers.length - 1);
+    if (test % lastNumber == 0 && newTest(test / lastNumber, newNumbers)) {
+      return true;
+    } else if (newTest(test - lastNumber, newNumbers)) {
+      return true;
+    }
+    int pow = (int) Math.pow(10, Math.floor(Math.log10(lastNumber)) + 1);
+    return test % pow == lastNumber && newTest(test / pow, newNumbers);
+  }
+
   @Override
-  public Number part2() {
-    return null;
+  public Long part2() {
+    return equations.entries().stream()
+        .filter((EntryPredicate<Long, int[]>) Day::newTest)
+        .mapToLong(Map.Entry::getKey)
+        .sum();
   }
 
   private static boolean test(long test, int[] numbers, int lastIndex) {
