@@ -1,6 +1,6 @@
 package com.cooltomatos.aoc;
 
-import com.cooltomatos.aoc.y2024.d07.Day;
+import com.cooltomatos.aoc.y2024.d09.Day;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
