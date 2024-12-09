@@ -17,4 +17,9 @@ public class DayTest {
   void part1() {
     assertThat(day.part1()).isEqualTo(1928);
   }
+
+  @Test
+  void part2() {
+    assertThat(day.part2()).isEqualTo(2858);
+  }
 }
