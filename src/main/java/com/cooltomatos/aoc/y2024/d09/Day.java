@@ -1,11 +1,11 @@
 package com.cooltomatos.aoc.y2024.d09;
 
+import static java.util.Map.Entry.comparingByKey;
+
 import com.cooltomatos.aoc.AbstractDay;
 import com.google.common.collect.Streams;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.stream.Stream;
 
 public class Day extends AbstractDay {
@@ -18,7 +18,7 @@ public class Day extends AbstractDay {
     var list = new ArrayList<Integer>();
     int id = 0;
     boolean space = true;
-    for (var c : input.get(0).toCharArray()) {
+    for (var c : input.getFirst().toCharArray()) {
       space = !space;
       if (!space) {
         for (var i = 0; i < c - '0'; i++) {
@@ -50,49 +50,43 @@ public class Day extends AbstractDay {
 
   @Override
   public Long part2() {
-    var files = new HashMap<Integer, Space>();
-    var gaps = new HashSet<Space>();
+    var files = new HashMap<Integer, File>();
+    var gaps = new HashMap<Integer, Integer>();
     int id = 0;
     boolean filled = false;
     int total = 0;
-    for (var c : input.get(0).toCharArray()) {
+    for (var c : input.getFirst().toCharArray()) {
       filled = !filled;
       var length = c - '0';
       if (filled) {
-        files.put(id, new Space(id, total, length));
-        id++;
+        files.put(id, new File(id++, total, length));
       } else {
-        gaps.add(new Space(null, total, length));
+        gaps.put(total, length);
       }
       total += length;
     }
     for (var i = id - 1; i >= 0; i--) {
-      var current = files.remove(i);
-      var leftMost =
-          gaps.stream()
-              .filter(gap -> gap.length() >= current.length)
-              .filter(gap -> gap.startIndex < current.startIndex)
-              .min(Comparator.comparingInt(Space::startIndex));
-      if (leftMost.isPresent()) {
-        var first = leftMost.get();
-        gaps.remove(first);
-        files.put(i, new Space(i, first.startIndex(), current.length));
-        var newLength = first.length() - current.length();
-        if (newLength > 0) {
-          gaps.add(new Space(null, first.startIndex + current.length, newLength));
-        }
-      } else {
-        files.put(i, current);
-      }
+      var current = files.get(i);
+      gaps.entrySet().stream()
+          .filter(gap -> gap.getKey() < current.startIndex && gap.getValue() >= current.length)
+          .min(comparingByKey())
+          .ifPresent(
+              first -> {
+                gaps.remove(first.getKey());
+                files.put(current.id, new File(current.id, first.getKey(), current.length));
+                if (first.getValue() > current.length) {
+                  gaps.put(first.getKey() + current.length, first.getValue() - current.length);
+                }
+              });
     }
     return files.values().stream()
         .flatMapToLong(
             file ->
-                Stream.iterate(file.startIndex, i -> i + 1)
+                Stream.iterate(file.startIndex, index -> index + 1)
                     .limit(file.length)
                     .mapToLong(index -> (long) index * file.id))
         .sum();
   }
 
-  private record Space(Integer id, int startIndex, int length) {}
+  private record File(int id, int startIndex, int length) {}
 }
