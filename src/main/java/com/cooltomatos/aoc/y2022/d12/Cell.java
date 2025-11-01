@@ -1,6 +1,6 @@
 package com.cooltomatos.aoc.y2022.d12;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class Cell {
   final Grid grid;
@@ -17,23 +17,19 @@ class Cell {
     this.height = height;
   }
 
-  @Nullable
-  Cell left() {
+  @Nullable Cell left() {
     return y > 0 ? grid.cells[x][y - 1] : null;
   }
 
-  @Nullable
-  Cell right() {
+  @Nullable Cell right() {
     return y < grid.column - 1 ? grid.cells[x][y + 1] : null;
   }
 
-  @Nullable
-  Cell top() {
+  @Nullable Cell top() {
     return x > 0 ? grid.cells[x - 1][y] : null;
   }
 
-  @Nullable
-  Cell bot() {
+  @Nullable Cell bot() {
     return x < grid.row - 1 ? grid.cells[x + 1][y] : null;
   }
 }

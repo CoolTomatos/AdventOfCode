@@ -16,7 +16,7 @@ public class Day extends AbstractDay {
   private final ImmutableSetMultimap<Integer, Integer> rules;
   private final List<List<Integer>> updates;
 
-    public Day(String dir, String file) {
+  public Day(String dir, String file) {
     super(2024, 5, dir, file);
     int seperator = input.indexOf("");
     rules =
@@ -31,10 +31,10 @@ public class Day extends AbstractDay {
         input.subList(seperator + 1, input.size()).stream()
             .map(line -> Arrays.stream(line.split(",")).map(Integer::parseInt).toList())
             .toList();
-    }
+  }
 
-    @Override
-    public Integer part1() {
+  @Override
+  public Integer part1() {
     return updates.stream()
         .filter(this::inOrder)
         .mapToInt(update -> update.get((update.size() - 1) / 2))
