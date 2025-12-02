@@ -1,6 +1,6 @@
 package com.cooltomatos.aoc;
 
-import com.cooltomatos.aoc.y2024.d11.Day;
+import com.cooltomatos.aoc.y2025.d02.Day;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +11,7 @@ import java.util.List;
 public abstract class AbstractDay {
   private static final Clock CLOCK = Clock.systemUTC();
 
-  public static void main(String[] args) {
+  static void main(String[] args) {
     AbstractDay day = new Day("main", "input");
 
     var part1Start = CLOCK.instant();
