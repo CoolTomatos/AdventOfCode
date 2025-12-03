@@ -48,12 +48,40 @@ public class Day extends AbstractDay {
   }
 
   @Override
-  public Number part2() {
-    return null;
+  public Integer part1() {
+    return banks.stream().mapToInt(Day::output).sum();
+  }
+
+  private static String biggest(List<Integer> bank, int size) {
+    if (size == 0) {
+      return "";
+    }
+    String left = "";
+    String mid = "";
+    String right = "";
+    for (int i = 9; i > 0; i--) {
+      if (!bank.contains(i)) {
+        continue;
+      }
+      mid = Integer.toString(i);
+      var index = bank.indexOf(i);
+      var leftSubList = bank.subList(0, index);
+      var rightSubList = bank.subList(index + 1, bank.size());
+      if (rightSubList.size() >= size - 1) {
+        right = biggest(rightSubList, size - 1);
+      } else {
+        int leftSize = size - 1 - rightSubList.size();
+        left = biggest(leftSubList, leftSize);
+        right = biggest(rightSubList, rightSubList.size());
+      }
+      break;
+    }
+
+    return left + mid + right;
   }
 
   @Override
-  public Integer part1() {
-    return banks.stream().mapToInt(Day::output).sum();
+  public Long part2() {
+    return banks.stream().map(bank -> biggest(bank, 12)).mapToLong(Long::parseLong).sum();
   }
 }
