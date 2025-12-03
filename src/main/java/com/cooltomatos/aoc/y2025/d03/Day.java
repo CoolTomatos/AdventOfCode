@@ -1,87 +1,48 @@
 package com.cooltomatos.aoc.y2025.d03;
 
 import com.cooltomatos.aoc.AbstractDay;
-import java.util.List;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Day extends AbstractDay {
-  private final List<List<Integer>> banks;
 
   public Day(String dir, String file) {
     super(2025, 3, dir, file);
-    banks =
-        input.stream()
-            .map(String::chars)
-            .map(bank -> bank.map(battery -> battery - '0'))
-            .map(IntStream::boxed)
-            .map(Stream::toList)
-            .toList();
   }
 
-  private static int output(List<Integer> bank) {
-    int biggest = -1;
-    int biggestIndex = -1;
-    for (int i = 9; i > 0; i--) {
-      if (bank.contains(i)) {
-        biggest = i;
-        biggestIndex = bank.indexOf(i);
-        break;
-      }
+  private static String solve(String battery, int size, int start, int end) {
+    if (end - start == size) {
+      return battery.substring(start, end);
     }
-    if (biggestIndex == bank.size() - 1) {
-      List<Integer> subList = bank.subList(0, biggestIndex);
-      for (int i = 9; i > 0; i--) {
-        if (subList.contains(i)) {
-          return i * 10 + biggest;
-        }
+    for (char i = '9'; i > '0'; i--) {
+      int index = battery.indexOf(i, start, end);
+      if (index == -1) {
+        continue;
       }
-    } else {
-      List<Integer> subList = bank.subList(biggestIndex + 1, bank.size());
-      for (int i = 9; i > 0; i--) {
-        if (subList.contains(i)) {
-          return biggest * 10 + i;
-        }
+      if (size == 1) {
+        return "" + i;
       }
+      int rightSize = end - index - 1;
+      if (rightSize >= size - 1) {
+        return i + solve(battery, size - 1, index + 1, end);
+      }
+      int leftSize = size - 1 - rightSize;
+      return solve(battery, leftSize, start, index) + i + solve(battery, rightSize, index + 1, end);
     }
-    return 0;
+    throw new IllegalStateException();
   }
 
   @Override
-  public Integer part1() {
-    return banks.stream().mapToInt(Day::output).sum();
-  }
-
-  private static String biggest(List<Integer> bank, int size) {
-    if (size == 0) {
-      return "";
-    }
-    String left = "";
-    String mid = "";
-    String right = "";
-    for (int i = 9; i > 0; i--) {
-      if (!bank.contains(i)) {
-        continue;
-      }
-      mid = Integer.toString(i);
-      var index = bank.indexOf(i);
-      var leftSubList = bank.subList(0, index);
-      var rightSubList = bank.subList(index + 1, bank.size());
-      if (rightSubList.size() >= size - 1) {
-        right = biggest(rightSubList, size - 1);
-      } else {
-        int leftSize = size - 1 - rightSubList.size();
-        left = biggest(leftSubList, leftSize);
-        right = biggest(rightSubList, rightSubList.size());
-      }
-      break;
-    }
-
-    return left + mid + right;
+  public Long part1() {
+    return input.stream()
+        .map(batteries -> solve(batteries, 2, 0, batteries.length()))
+        .mapToLong(Long::parseLong)
+        .sum();
   }
 
   @Override
   public Long part2() {
-    return banks.stream().map(bank -> biggest(bank, 12)).mapToLong(Long::parseLong).sum();
+    return input.stream()
+        .map(batteries -> solve(batteries, 12, 0, batteries.length()))
+        .mapToLong(Long::parseLong)
+        .sum();
   }
 }
