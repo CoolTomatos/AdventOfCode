@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class Day extends AbstractDay {
   private final List<Point> points;
@@ -81,7 +82,52 @@ public class Day extends AbstractDay {
 
   @Override
   public Number part2() {
-    return null;
+    var distanceTableBuilder = ImmutableTable.<Point, Point, Long>builder();
+    for (int i = 0; i < points.size(); i++) {
+      Point left = points.get(i);
+      for (int j = 0; j < i; j++) {
+        Point right = points.get(j);
+        distanceTableBuilder.put(left, right, left.distanceSquared(right));
+      }
+    }
+    var distances = distanceTableBuilder.build();
+    var sortedEdges =
+        distances.cellSet().stream()
+            .sorted(Comparator.comparingLong(Table.Cell::getValue))
+            .toList();
+    long totalPoints =
+        distances.cellSet().stream()
+            .flatMap(cell -> Stream.of(cell.getRowKey(), cell.getColumnKey()))
+            .distinct()
+            .count();
+
+    Set<Set<Point>> cliques = new HashSet<>();
+    for (Table.Cell<Point, Point, Long> edge : sortedEdges) {
+      var left = edge.getRowKey();
+      var right = edge.getColumnKey();
+
+      var leftSet =
+          cliques.stream().filter(set -> set.contains(left)).findAny().orElseGet(HashSet::new);
+      var rightSet =
+          cliques.stream().filter(set -> set.contains(right)).findAny().orElseGet(HashSet::new);
+      if (leftSet.isEmpty() && rightSet.isEmpty()) {
+        var newSet = new HashSet<Point>();
+        newSet.add(left);
+        newSet.add(right);
+        cliques.add(newSet);
+      } else if (leftSet.isEmpty()) {
+        rightSet.add(left);
+      } else if (rightSet.isEmpty()) {
+        leftSet.add(right);
+      } else if (!leftSet.equals(rightSet)) {
+        leftSet.addAll(rightSet);
+        rightSet.clear();
+      }
+      if (totalPoints == leftSet.size() + rightSet.size()) {
+        return left.x() * right.x();
+      }
+    }
+    return 0;
   }
 
   private record Point(long x, long y, long z) {
