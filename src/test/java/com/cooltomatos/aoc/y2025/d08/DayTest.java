@@ -2,6 +2,7 @@ package com.cooltomatos.aoc.y2025.d08;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.OptionalInt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,7 @@ class DayTest {
 
   @Test
   void part1() {
-    assertThat(day.part1(10)).isEqualTo(40);
+    assertThat(day.solve(OptionalInt.of(10))).isEqualTo(40);
   }
 
   @Test

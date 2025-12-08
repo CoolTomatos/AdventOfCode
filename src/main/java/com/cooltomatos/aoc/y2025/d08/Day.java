@@ -1,20 +1,20 @@
 package com.cooltomatos.aoc.y2025.d08;
 
 import com.cooltomatos.aoc.AbstractDay;
-import com.google.common.collect.ImmutableTable;
-import com.google.common.collect.Table;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 public class Day extends AbstractDay {
-  private final List<Point> points;
+  private final List<Edge> sortedEdges;
 
   public Day(String dir, String file) {
     super(2025, 8, dir, file);
-    points =
+    var points =
         input.stream()
             .map(point -> point.split(","))
             .map(
@@ -24,97 +24,49 @@ public class Day extends AbstractDay {
                         Long.parseLong(point[1]),
                         Long.parseLong(point[2])))
             .toList();
+    sortedEdges =
+        IntStream.range(0, points.size())
+            .boxed()
+            .flatMap(
+                i -> IntStream.range(0, i).mapToObj(j -> new Edge(points.get(i), points.get(j))))
+            .sorted(Comparator.comparingLong(Edge::distanceSquared))
+            .toList();
   }
 
   @Override
-  public Integer part1() {
-    return part1(1000);
+  public Long part1() {
+    return solve(OptionalInt.of(1000));
   }
 
-  int part1(int limit) {
-    var distanceTableBuilder = ImmutableTable.<Point, Point, Long>builder();
-    for (int i = 0; i < points.size(); i++) {
-      Point left = points.get(i);
-      for (int j = 0; j < i; j++) {
-        Point right = points.get(j);
-        distanceTableBuilder.put(left, right, left.distanceSquared(right));
-      }
-    }
-    var distances = distanceTableBuilder.build();
-    var sortedEdges =
-        distances.cellSet().stream()
-            .sorted(Comparator.comparingLong(Table.Cell::getValue))
-            .toList();
+  @Override
+  public Long part2() {
+    return solve(OptionalInt.empty());
+  }
 
+  long solve(OptionalInt limit) {
+    Set<Set<Point>> circuits = new HashSet<>();
     int count = 0;
-    Set<Set<Point>> cliques = new HashSet<>();
-    for (Table.Cell<Point, Point, Long> edge : sortedEdges) {
-      if (count == limit) {
+    for (var edge : sortedEdges) {
+      if (limit.isPresent() && limit.getAsInt() == count++) {
         break;
       }
-      count++;
-      var left = edge.getRowKey();
-      var right = edge.getColumnKey();
-
-      var leftSet = cliques.stream().filter(set -> set.contains(left)).findAny();
-      var rightSet = cliques.stream().filter(set -> set.contains(right)).findAny();
-      if (leftSet.isEmpty() && rightSet.isEmpty()) {
-        var newSet = new HashSet<Point>();
-        newSet.add(left);
-        newSet.add(right);
-        cliques.add(newSet);
-      } else if (leftSet.isEmpty()) {
-        rightSet.get().add(left);
-      } else if (rightSet.isEmpty()) {
-        leftSet.get().add(right);
-      } else if (!leftSet.get().equals(rightSet.get())) {
-        leftSet.get().addAll(rightSet.get());
-        rightSet.get().clear();
-      }
-    }
-
-    return cliques.stream()
-        .map(Set::size)
-        .sorted(Comparator.reverseOrder())
-        .limit(3)
-        .reduce(1, (l, r) -> l * r);
-  }
-
-  @Override
-  public Number part2() {
-    var distanceTableBuilder = ImmutableTable.<Point, Point, Long>builder();
-    for (int i = 0; i < points.size(); i++) {
-      Point left = points.get(i);
-      for (int j = 0; j < i; j++) {
-        Point right = points.get(j);
-        distanceTableBuilder.put(left, right, left.distanceSquared(right));
-      }
-    }
-    var distances = distanceTableBuilder.build();
-    var sortedEdges =
-        distances.cellSet().stream()
-            .sorted(Comparator.comparingLong(Table.Cell::getValue))
-            .toList();
-    long totalPoints =
-        distances.cellSet().stream()
-            .flatMap(cell -> Stream.of(cell.getRowKey(), cell.getColumnKey()))
-            .distinct()
-            .count();
-
-    Set<Set<Point>> cliques = new HashSet<>();
-    for (Table.Cell<Point, Point, Long> edge : sortedEdges) {
-      var left = edge.getRowKey();
-      var right = edge.getColumnKey();
+      var left = edge.left();
+      var right = edge.right();
 
       var leftSet =
-          cliques.stream().filter(set -> set.contains(left)).findAny().orElseGet(HashSet::new);
+          circuits.stream()
+              .filter(circuit -> circuit.contains(left))
+              .findAny()
+              .orElseGet(HashSet::new);
       var rightSet =
-          cliques.stream().filter(set -> set.contains(right)).findAny().orElseGet(HashSet::new);
+          circuits.stream()
+              .filter(circuit -> circuit.contains(right))
+              .findAny()
+              .orElseGet(HashSet::new);
       if (leftSet.isEmpty() && rightSet.isEmpty()) {
-        var newSet = new HashSet<Point>();
-        newSet.add(left);
-        newSet.add(right);
-        cliques.add(newSet);
+        leftSet.add(left);
+        leftSet.add(right);
+        circuits.add(leftSet);
       } else if (leftSet.isEmpty()) {
         rightSet.add(left);
       } else if (rightSet.isEmpty()) {
@@ -123,18 +75,24 @@ public class Day extends AbstractDay {
         leftSet.addAll(rightSet);
         rightSet.clear();
       }
-      if (totalPoints == leftSet.size() + rightSet.size()) {
+      if (input.size() == leftSet.size() + rightSet.size()) {
         return left.x() * right.x();
       }
     }
-    return 0;
+    return circuits.stream()
+        .map(Collection::size)
+        .sorted(Comparator.reverseOrder())
+        .limit(3)
+        .reduce(1, (l, r) -> l * r);
   }
 
-  private record Point(long x, long y, long z) {
-    long distanceSquared(Point other) {
-      return (x - other.x) * (x - other.x)
-          + (y - other.y) * (y - other.y)
-          + (z - other.z) * (z - other.z);
+  private record Point(long x, long y, long z) {}
+
+  private record Edge(Day.Point left, Day.Point right) {
+    public long distanceSquared() {
+      return (left.x() - right.x()) * (left.x() - right.x())
+          + (left.y() - right.y()) * (left.y() - right.y())
+          + (left.z() - right.z()) * (left.z() - right.z());
     }
   }
 }
